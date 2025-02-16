@@ -1,0 +1,92 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+env/
+*.env
+*.venv
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Cache files
+*.cache
+*.log
+logs/
+debug.log
+
+# IDE files (PyCharm)
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+
+# Local development settings
+.env
+*.env.local
+*.env.*.local
+*.secrets
+
+# Python dependency files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# VS Code settings
+.vscode/
+settings.json
+
+# Database / Data files
+*.sqlite3
+*.db
+*.sql
+*.csv
+*.json
+*.parquet
+data/
+
+# Compiled C extensions
+*.so
+
+# Testing & Coverage
+.tox/
+.nox/
+.coverage
+*.cover
+*.py,cover
+coverage.xml
+pytest_cache/
+nosetests.xml
+test-reports/
+
+# Docker files
+docker-compose.override.yml
+.dockerignore
+
+# FastAPI specific
+instance/
+config.yaml
+*.pid
+
+# Mypy type checking
+.mypy_cache/
+
+# PyCharm specific
+.idea/
+*.iml
+workspace.xml
+tasks.xml
+shelf/
+modules.xml
+
+# JetBrains IDEs
+/.idea/
+
+# Ignore Gunicorn logs
+gunicorn.error.log
+gunicorn.access.log
+
+# Ignore migrations (Django, Flask, or SQLAlchemy)
+migrations/

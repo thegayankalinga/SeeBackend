@@ -1,0 +1,22 @@
+{
+  "Hybrid": {
+    "filename": "best_hybrid_model_v1.2.pkl",
+    "id": "13e3VU6hlLh6j70ux0rHtJf7tgKfyKcN1"
+  },
+  "RandomForest": {
+    "filename": "best_random_forest_v1.1.pkl",
+    "id": "13bZ-O2Ic1KZJy0xrLFKCTtrxkZTqnv1w"
+  },
+  "XGBoost": {
+    "filename": "best_xgboost_v1.0.pkl",
+    "id": "13fFsizsQbpbIuiNBb7Clacc3TvKs4aFq"
+  },
+  "LSTM": {
+    "filename": "lstm_model_v3.0.keras",
+    "id": "13gXp0PhnDb__PQEnG8mUkafvmM-uoJSK"
+  },
+  "MLP": {
+    "filename": "mlp_model_v2.4.keras",
+    "id": "13fexWW4zG9X9p7dty5FNb-sEyAaMPO7c"
+  }
+}

@@ -14,6 +14,7 @@ RUN pip install --default-timeout=3000 -r requirements.txt tensorflow==2.17.0
 
 # Copy all source files (main.py, download_models.py, etc.)
 COPY . /app/
+COPY ./pipelines /app/pipelines
 
 # Download models if not present
 RUN python download_models.py

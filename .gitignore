@@ -61,6 +61,14 @@ pytest_cache/
 nosetests.xml
 test-reports/
 
+#excluding model files
+models/
+pipelines/
+*.pkl
+*.joblib
+*.h5
+*.keras
+
 # Docker files
 docker-compose.override.yml
 .dockerignore

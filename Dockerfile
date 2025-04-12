@@ -5,12 +5,15 @@ FROM python:3.10-slim
 WORKDIR /app
 
 
-# Copy and install only requirements (cache-friendly)
-COPY requirements.txt .
-RUN pip install --default-timeout=3000 -r requirements.txt tensorflow==2.17.0
+
+RUN apt-get update && apt-get install -y build-essential libgomp1
 #RUN pip install --default-timeout=3000 --no-cache-dir -r requirements.txt
 #RUN pip install --default-timeout=3000 requirements.txt
 #RUN pip install --default-timeout=3000 tensorflow==2.17.0
+
+# Copy and install only requirements (cache-friendly)
+COPY requirements.txt .
+RUN pip install --default-timeout=3000 -r requirements.txt tensorflow==2.18.0
 
 # Copy all source files (main.py, download_models.py, etc.)
 COPY . /app/

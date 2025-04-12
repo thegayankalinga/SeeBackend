@@ -1,62 +1,71 @@
 from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-import sklearn
 from pydantic import BaseModel, validator
-import numpy as np
 import joblib
 import os
-from typing import List, Dict, Optional, Union
-import pandas as pd
+from typing import List, Dict, Union
 from functools import lru_cache
-from pipeline_imp import ProjectEffortPipeline  # Ensure this is correctly imported
-import sys
 import json
+import logging
 
-# class Settings:
-#     # MODELS_PATH: str = os.getenv(
-#     #     "MODELS_PATH",
-#     #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/models"
-#     # )
-#     # PIPELINE_PATH: str = os.getenv(
-#     #     "PIPELINE_PATH",
-#     #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/pipelines/project_effort_pipeline.joblib"
-#     # )
-#     # DATA_PATH: str = os.getenv(
-#     #     "DATA_PATH",
-#     #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/data_sets/project_mandays_calculations50k_augmented.csv"
-#     # )
+
+
+#Versions
+# XGBoost version: 2.1.4
+# TensorFlow version: 2.18.0
+# NumPy version: 2.0.2
+# Pandas version: 2.2.2
+# Scikit-learn version: 1.6.1
+# Joblib version: 1.4.2
 #
-#     MODELS_PATH: str = os.getenv("MODELS_PATH", "/app/models")
-#     PIPELINE_PATH: str = os.getenv("PIPELINE_PATH", "/app/pipelines/project_effort_pipeline.joblib")
-#     DATA_PATH: str = os.getenv("DATA_PATH", "/app/data_sets/project_mandays_calculations50k_augmented.csv")
-#
-#
-#
-#     MODEL_FILES = {
-#         "Hybrid": "best_hybrid_model.pkl", #https://drive.google.com/file/d/13e3VU6hlLh6j70ux0rHtJf7tgKfyKcN1/view?usp=share_link
-#         "RandomForest": "best_random_forest.pkl", #https://drive.google.com/file/d/13bZ-O2Ic1KZJy0xrLFKCTtrxkZTqnv1w/view?usp=share_link
-#         "XGBoost": "best_xgboost.pkl", #https://drive.google.com/file/d/13fFsizsQbpbIuiNBb7Clacc3TvKs4aFq/
-#         "LSTM": "lstm_model.keras", #https://drive.google.com/file/d/13gXp0PhnDb__PQEnG8mUkafvmM-uoJSK/
-#         "MLP": "mlp_model.keras" #https://drive.google.com/file/d/13fexWW4zG9X9p7dty5FNb-sEyAaMPO7c/
-#     }
+# MODEL_FILES = {
+#          "Hybrid": "best_hybrid_model.pkl",
+#          "RandomForest": "best_random_forest.pkl",
+#          "XGBoost": "best_xgboost.pkl",
+#          "LSTM": "lstm_model.keras",
+#          "MLP": "mlp_model.keras"
+#      }
+
+# {
+#     'Hybrid': 'best_hybrid_model_v1.2.pkl',
+#     'RandomForest': 'best_random_forest_v1.1.pkl',
+#     'XGBoost': 'best_xgboost_v1.0.pkl',
+#     'LSTM': 'lstm_model_v3.0.keras',
+#     'MLP': 'mlp_model_v2.4.keras'
+# }
+
+def load_tensorflow():
+    """Lazy loading of TensorFlow"""
+    try:
+        import tensorflow as tf
+        return tf, True
+    except Exception as e:
+        print(f"TensorFlow import failed: {str(e)}")
+        return None, False
 
 
 class Settings:
-    MODELS_PATH = os.getenv("MODELS_PATH", "/app/models")
+    IS_DOCKER = os.getenv("DOCKERIZED", "false").lower() == "true"
 
-    # Load the deployed_versions.json file
+    BASE_PATH = "/app" if IS_DOCKER else "."
+
+    MODELS_PATH = os.path.join(BASE_PATH, "models")
+    PIPELINE_PATH = os.getenv("PIPELINE_PATH", os.path.join(BASE_PATH, "pipelines", "project_effort_pipeline.joblib"))
+    DATA_PATH = os.getenv("DATA_PATH", os.path.join(BASE_PATH, "data_sets", "project_mandays_calculations50k_augmented.csv"))
+
     with open(os.path.join(MODELS_PATH, "deployed_versions.json"), "r") as f:
         deployed_versions = json.load(f)
 
     MODEL_FILES = {
-        model: filename
+        model: (
+            filename if isinstance(filename, str)
+            else filename.get("filename", None))
         for model, filename in deployed_versions.items()
     }
 
-    PIPELINE_PATH: str = os.getenv("PIPELINE_PATH", "/app/pipelines/project_effort_pipeline.joblib")
-    DATA_PATH: str = os.getenv("DATA_PATH", "/app/data_sets/project_mandays_calculations50k_augmented.csv")
 
 settings = Settings()
+print(settings.MODEL_FILES)
 
 #Initiate the Pipeline when running for the first time.
 # pipeline = ProjectEffortPipeline()
@@ -97,14 +106,6 @@ def check_tensorflow_compatibility():
     except Exception as e:
         print(f"TensorFlow compatibility check failed: {str(e)}")
         return False, None
-def load_tensorflow():
-    """Lazy loading of TensorFlow"""
-    try:
-        import tensorflow as tf
-        return tf, True
-    except Exception as e:
-        print(f"TensorFlow import failed: {str(e)}")
-        return None, False
 
 @lru_cache()
 def get_pipeline():
@@ -164,16 +165,28 @@ def load_hybrid_model(settings):
     full_model = Model(inputs=inputs, outputs=outputs)
 
     # Load the weights from your saved model
-    full_model.load_weights(os.path.join(settings.MODELS_PATH, "lstm_model.keras"))
+    # === Load LSTM weights ===
+    lstm_model_path = os.path.join(settings.MODELS_PATH, settings.MODEL_FILES["LSTM"])
+    full_model.load_weights(lstm_model_path)
 
-    # Create feature extractor model using the second LSTM layer
+    # Create a feature extractor model (output of second LSTM layer)
     lstm_feature_extractor = Model(inputs=full_model.input, outputs=full_model.layers[2].output)
 
-    # Load XGBoost Model
-    xgb_model_path = os.path.join(settings.MODELS_PATH, "best_hybrid_model.pkl")
+    # === Load XGBoost model ===
+    xgb_model_path = os.path.join(settings.MODELS_PATH, settings.MODEL_FILES["Hybrid"])
     xgb_model = joblib.load(xgb_model_path)
-
     return lstm_feature_extractor, xgb_model
+
+    # full_model.load_weights(os.path.join(settings.MODELS_PATH, "lstm_model_v3.0.keras"))
+
+    # Create feature extractor model using the second LSTM layer
+    # lstm_feature_extractor = Model(inputs=full_model.input, outputs=full_model.layers[2].output)
+    #
+    # # Load XGBoost Model
+    # xgb_model_path = os.path.join(settings.MODELS_PATH, "best_hybrid_model_v1.2.pkl")
+    # xgb_model = joblib.load(xgb_model_path)
+
+
 
 def predict_hybrid(features, lstm_feature_extractor, xgb_model):
     """Generate predictions using the hybrid model."""
@@ -199,6 +212,7 @@ def predict_hybrid(features, lstm_feature_extractor, xgb_model):
 
 #Load the LSTM Model
 def load_lstm_model(model_path: str):
+    print(model_path)
     """Specialized function to load LSTM models."""
     tf, available = load_tensorflow()
     if not available:
@@ -210,6 +224,7 @@ def load_lstm_model(model_path: str):
     # Load as tf.saved_model format
     try:
         model = tf.saved_model.load(model_path)
+        # model = tf.keras.models.load_model(model_path, custom_objects=None, compile=False)
         print("Successfully loaded LSTM model using saved_model format")
         return model
     except Exception as e:

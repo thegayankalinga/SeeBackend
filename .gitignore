@@ -63,7 +63,6 @@ test-reports/
 
 #excluding model files
 models/
-pipelines/
 *.pkl
 *.joblib
 *.h5

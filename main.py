@@ -11,31 +11,35 @@ from functools import lru_cache
 from pipeline_imp import ProjectEffortPipeline  # Ensure this is correctly imported
 import sys
 
-
 class Settings:
-    MODELS_PATH: str = os.getenv(
-        "MODELS_PATH",
-        "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/models"
-    )
-    PIPELINE_PATH: str = os.getenv(
-        "PIPELINE_PATH",
-        "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/pipelines/project_effort_pipeline.joblib"
-    )
-    DATA_PATH: str = os.getenv(
-        "DATA_PATH",
-        "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/data_sets/project_mandays_calculations50k_augmented.csv"
-    )
+    # MODELS_PATH: str = os.getenv(
+    #     "MODELS_PATH",
+    #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/models"
+    # )
+    # PIPELINE_PATH: str = os.getenv(
+    #     "PIPELINE_PATH",
+    #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/pipelines/project_effort_pipeline.joblib"
+    # )
+    # DATA_PATH: str = os.getenv(
+    #     "DATA_PATH",
+    #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/data_sets/project_mandays_calculations50k_augmented.csv"
+    # )
+
+    MODELS_PATH: str = os.getenv("MODELS_PATH", "/app/models")
+    PIPELINE_PATH: str = os.getenv("PIPELINE_PATH", "/app/pipelines/project_effort_pipeline.joblib")
+    DATA_PATH: str = os.getenv("DATA_PATH", "/app/data_sets/project_mandays_calculations50k_augmented.csv")
+
+
+
     MODEL_FILES = {
-        "Hybrid": "best_hybrid_model.pkl",
-        "RandomForest": "best_random_forest.pkl",
-        "XGBoost": "best_xgboost.pkl",
-        "LSTM": "lstm_model.keras",
-        "MLP": "mlp_model.keras"
+        "Hybrid": "best_hybrid_model.pkl", #https://drive.google.com/file/d/13e3VU6hlLh6j70ux0rHtJf7tgKfyKcN1/view?usp=share_link
+        "RandomForest": "best_random_forest.pkl", #https://drive.google.com/file/d/13bZ-O2Ic1KZJy0xrLFKCTtrxkZTqnv1w/view?usp=share_link
+        "XGBoost": "best_xgboost.pkl", #https://drive.google.com/file/d/13fFsizsQbpbIuiNBb7Clacc3TvKs4aFq/
+        "LSTM": "lstm_model.keras", #https://drive.google.com/file/d/13gXp0PhnDb__PQEnG8mUkafvmM-uoJSK/
+        "MLP": "mlp_model.keras" #https://drive.google.com/file/d/13fexWW4zG9X9p7dty5FNb-sEyAaMPO7c/
     }
 
-
 settings = Settings()
-
 
 #Initiate the Pipeline when running for the first time.
 # pipeline = ProjectEffortPipeline()
@@ -61,7 +65,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 def check_tensorflow_compatibility():
     """Check TensorFlow version and compatibility."""
     try:
@@ -86,7 +89,6 @@ def load_tensorflow():
         print(f"TensorFlow import failed: {str(e)}")
         return None, False
 
-
 @lru_cache()
 def get_pipeline():
     try:
@@ -101,7 +103,6 @@ def get_pipeline():
     except Exception as e:
         print(f"❌ Failed to load pipeline: {str(e)}")
         raise RuntimeError(f"Failed to load pipeline: {str(e)}")
-
 
 class PredictionRequest(BaseModel):
     features: List[Union[str, int, float]]
@@ -118,12 +119,10 @@ class PredictionRequest(BaseModel):
                 raise ValueError("TensorFlow models (LSTM, MLP) are not available")
         return v
 
-
 class PredictionResponse(BaseModel):
     success: bool
     model: str
     predictions: Dict[str, float]
-
 
 #Load the Hybrid Models
 def load_hybrid_model(settings):
@@ -159,7 +158,6 @@ def load_hybrid_model(settings):
 
     return lstm_feature_extractor, xgb_model
 
-
 def predict_hybrid(features, lstm_feature_extractor, xgb_model):
     """Generate predictions using the hybrid model."""
     import numpy as np
@@ -181,8 +179,6 @@ def predict_hybrid(features, lstm_feature_extractor, xgb_model):
     predictions = xgb_model.predict(combined_features)
 
     return predictions
-
-
 
 #Load the LSTM Model
 def load_lstm_model(model_path: str):
@@ -247,7 +243,6 @@ def load_model(model_name: str):
     except Exception as e:
         raise RuntimeError(f"Failed to load model {model_name}: {str(e)}")
 
-
 def convert_feature_values(value: Union[str, int, float]) -> Union[float, str]:
     """Convert feature values to appropriate types."""
     if isinstance(value, (int, float)):
@@ -263,7 +258,6 @@ def convert_feature_values(value: Union[str, int, float]) -> Union[float, str]:
 
     return str(value)
 
-
 @app.get("/health")
 async def health_check():
     """Health check endpoint to verify API status."""
@@ -278,7 +272,6 @@ async def health_check():
         "available_models": available_models,
         "tensorflow_available": tensorflow_available
     }
-
 
 @app.post("/predict", response_model=PredictionResponse)
 async def predict_effort(request: PredictionRequest):

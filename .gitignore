@@ -78,12 +78,14 @@ instance/
 config.yaml
 *.pid
 
+dist/
+build/
+*.egg-info/
+
 # Mypy type checking
 .mypy_cache/
 
 # PyCharm specific
-.idea/
-*.iml
 workspace.xml
 tasks.xml
 shelf/

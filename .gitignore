@@ -64,7 +64,6 @@ test-reports/
 #excluding model files
 models/
 *.pkl
-*.joblib
 *.h5
 *.keras
 

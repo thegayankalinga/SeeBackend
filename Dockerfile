@@ -7,7 +7,7 @@ WORKDIR /app
 # Install dependencies
 COPY requirements.txt .
 RUN pip install --default-timeout=3000 --no-cache-dir tensorflow==2.17.0
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --default-timeout=300 --no-cache-dir -r requirements.txt
 RUN pip install gdown
 
 # Copy all source files (main.py, download_models.py, etc.)

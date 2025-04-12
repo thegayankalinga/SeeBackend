@@ -4,11 +4,13 @@ FROM python:3.10-slim
 # Set working directory
 WORKDIR /app
 
-# Install dependencies
+
+# Copy and install only requirements (cache-friendly)
 COPY requirements.txt .
-RUN pip install --default-timeout=3000 --no-cache-dir tensorflow==2.17.0
-RUN pip install --default-timeout=300 --no-cache-dir -r requirements.txt
-RUN pip install --default-timeout=300 gdown
+RUN pip install --default-timeout=3000 -r requirements.txt tensorflow==2.17.0
+#RUN pip install --default-timeout=3000 --no-cache-dir -r requirements.txt
+#RUN pip install --default-timeout=3000 requirements.txt
+#RUN pip install --default-timeout=3000 tensorflow==2.17.0
 
 # Copy all source files (main.py, download_models.py, etc.)
 COPY . /app/

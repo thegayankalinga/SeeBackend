@@ -10,34 +10,51 @@ import pandas as pd
 from functools import lru_cache
 from pipeline_imp import ProjectEffortPipeline  # Ensure this is correctly imported
 import sys
+import json
+
+# class Settings:
+#     # MODELS_PATH: str = os.getenv(
+#     #     "MODELS_PATH",
+#     #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/models"
+#     # )
+#     # PIPELINE_PATH: str = os.getenv(
+#     #     "PIPELINE_PATH",
+#     #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/pipelines/project_effort_pipeline.joblib"
+#     # )
+#     # DATA_PATH: str = os.getenv(
+#     #     "DATA_PATH",
+#     #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/data_sets/project_mandays_calculations50k_augmented.csv"
+#     # )
+#
+#     MODELS_PATH: str = os.getenv("MODELS_PATH", "/app/models")
+#     PIPELINE_PATH: str = os.getenv("PIPELINE_PATH", "/app/pipelines/project_effort_pipeline.joblib")
+#     DATA_PATH: str = os.getenv("DATA_PATH", "/app/data_sets/project_mandays_calculations50k_augmented.csv")
+#
+#
+#
+#     MODEL_FILES = {
+#         "Hybrid": "best_hybrid_model.pkl", #https://drive.google.com/file/d/13e3VU6hlLh6j70ux0rHtJf7tgKfyKcN1/view?usp=share_link
+#         "RandomForest": "best_random_forest.pkl", #https://drive.google.com/file/d/13bZ-O2Ic1KZJy0xrLFKCTtrxkZTqnv1w/view?usp=share_link
+#         "XGBoost": "best_xgboost.pkl", #https://drive.google.com/file/d/13fFsizsQbpbIuiNBb7Clacc3TvKs4aFq/
+#         "LSTM": "lstm_model.keras", #https://drive.google.com/file/d/13gXp0PhnDb__PQEnG8mUkafvmM-uoJSK/
+#         "MLP": "mlp_model.keras" #https://drive.google.com/file/d/13fexWW4zG9X9p7dty5FNb-sEyAaMPO7c/
+#     }
+
 
 class Settings:
-    # MODELS_PATH: str = os.getenv(
-    #     "MODELS_PATH",
-    #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/models"
-    # )
-    # PIPELINE_PATH: str = os.getenv(
-    #     "PIPELINE_PATH",
-    #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/pipelines/project_effort_pipeline.joblib"
-    # )
-    # DATA_PATH: str = os.getenv(
-    #     "DATA_PATH",
-    #     "/Users/gayan/Library/CloudStorage/GoogleDrive-bg15407@gmail.com/My Drive/Projects/msc_project/data_sets/project_mandays_calculations50k_augmented.csv"
-    # )
+    MODELS_PATH = os.getenv("MODELS_PATH", "/app/models")
 
-    MODELS_PATH: str = os.getenv("MODELS_PATH", "/app/models")
-    PIPELINE_PATH: str = os.getenv("PIPELINE_PATH", "/app/pipelines/project_effort_pipeline.joblib")
-    DATA_PATH: str = os.getenv("DATA_PATH", "/app/data_sets/project_mandays_calculations50k_augmented.csv")
-
-
+    # Load the deployed_versions.json file
+    with open(os.path.join(MODELS_PATH, "deployed_versions.json"), "r") as f:
+        deployed_versions = json.load(f)
 
     MODEL_FILES = {
-        "Hybrid": "best_hybrid_model.pkl", #https://drive.google.com/file/d/13e3VU6hlLh6j70ux0rHtJf7tgKfyKcN1/view?usp=share_link
-        "RandomForest": "best_random_forest.pkl", #https://drive.google.com/file/d/13bZ-O2Ic1KZJy0xrLFKCTtrxkZTqnv1w/view?usp=share_link
-        "XGBoost": "best_xgboost.pkl", #https://drive.google.com/file/d/13fFsizsQbpbIuiNBb7Clacc3TvKs4aFq/
-        "LSTM": "lstm_model.keras", #https://drive.google.com/file/d/13gXp0PhnDb__PQEnG8mUkafvmM-uoJSK/
-        "MLP": "mlp_model.keras" #https://drive.google.com/file/d/13fexWW4zG9X9p7dty5FNb-sEyAaMPO7c/
+        model: filename
+        for model, filename in deployed_versions.items()
     }
+
+    PIPELINE_PATH: str = os.getenv("PIPELINE_PATH", "/app/pipelines/project_effort_pipeline.joblib")
+    DATA_PATH: str = os.getenv("DATA_PATH", "/app/data_sets/project_mandays_calculations50k_augmented.csv")
 
 settings = Settings()
 

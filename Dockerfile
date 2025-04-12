@@ -6,23 +6,18 @@ WORKDIR /app
 
 # Install dependencies
 COPY requirements.txt .
+RUN pip install --default-timeout=3000 --no-cache-dir tensorflow==2.17.0
 RUN pip install --no-cache-dir -r requirements.txt
 RUN pip install gdown
 
+# Copy all source files (main.py, download_models.py, etc.)
+COPY . /app/
 
-
-# Copy app code and model
-COPY ./app /app/app
-
-# Create models dir and download them
+# Download models if not present
 RUN python download_models.py
-
-#COPY ./models /app/models
-#COPY ./pipelines /app/pipelines
-#COPY ./data_sets /app/data_sets
 
 # Expose FastAPI port
 EXPOSE 8000
 
-# Run server
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start the API
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
